@@ -1,0 +1,68 @@
+# zSCOUT Docker Compose — deployed to CM5 Lite SD card image
+# Orchestrates all containers on boot
+
+version: "3.8"
+
+volumes:
+  zscout-config:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /etc/zscout
+
+services:
+  mesh:
+    image: zscout-mesh:latest
+    container_name: zscout-mesh
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+    environment:
+      - MESH_SSID=zSCOUT-mesh
+      - MESH_CHANNEL=1
+      - BATMAN_GW_MODE=client
+
+  scanner:
+    image: zscout-scanner:latest
+    container_name: zscout-scanner
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    volumes:
+      - zscout-config:/etc/zscout
+    depends_on:
+      - mesh
+
+  relay:
+    image: zscout-relay:latest
+    container_name: zscout-relay
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - zscout-config:/etc/zscout
+    depends_on:
+      - mesh
+      - scanner
+
+  trilat:
+    image: zscout-trilat:latest
+    container_name: zscout-trilat
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - zscout-config:/etc/zscout
+    depends_on:
+      - relay
+
+  config-agent:
+    image: zscout-config-agent:latest
+    container_name: zscout-config-agent
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+    volumes:
+      - zscout-config:/etc/zscout
+      - /var/run/dbus:/var/run/dbus

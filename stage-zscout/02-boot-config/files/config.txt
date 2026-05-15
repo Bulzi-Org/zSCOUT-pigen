@@ -1,0 +1,31 @@
+# zSCOUT boot configuration for CM5 Lite on Waveshare CM5-IO-BASE-B
+# See http://rptl.io/configtxt for full reference
+
+# --- Hardware interfaces ---
+dtparam=i2c_arm=on
+dtparam=spi=on
+dtparam=audio=on
+
+# --- Camera / Display auto-detect ---
+camera_auto_detect=1
+display_auto_detect=1
+
+# --- Initramfs ---
+auto_initramfs=1
+
+# --- GPU / Display driver ---
+dtoverlay=vc4-kms-v3d
+max_framebuffers=2
+disable_fw_kms_setup=1
+disable_overscan=1
+
+# --- Performance ---
+arm_boost=1
+
+# --- CM5-specific: enable USB host mode via dwc2; PCIe for Wavelet uSDR ---
+[cm5]
+dtoverlay=dwc2,dr_mode=host
+dtparam=pciex1
+dtoverlay=pcie-32bit-dma
+
+[all]
